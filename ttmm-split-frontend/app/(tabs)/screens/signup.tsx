@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { 
   View, 
   Text, 
@@ -26,6 +27,39 @@ export default function SignUpScreen() {
   const [agreed, setAgreed] = useState(false);
   const router = useRouter();
 
+
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name:'',
+    username: '',
+    password: '',
+    cpassword: '',
+    email:'',
+    agreed_to_terms: false,
+  });
+
+  const handleChange = (field: keyof typeof formData, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    try{
+      const payload = {
+        ...formData,
+        password1: formData.password,
+        password2: formData.cpassword,
+        agreed_to_terms: agreed,
+      };
+      const response = await axios.post('http://127.0.0.1:8000/authentication/register/', payload);
+      console.log(response);
+    }catch (error) {
+      console.error(error);
+    }
+  }
+
   let [fontsLoaded] = useFonts({
     'Manrope-Regular': Manrope_400Regular,
     'Manrope-Medium': Manrope_500Medium,
@@ -36,13 +70,21 @@ export default function SignUpScreen() {
 
   if (!fontsLoaded) return null;
 
+
+
   return (
     <View className="flex-1 bg-[#010101]">
       <StatusBar barStyle="light-content" />
-      
-      {/* Visual Decorative Element - Matching Login Style */}
-      <View className="absolute top-0 right-0 w-32 h-32 bg-[#BAB2FF] rounded-bl-full opacity-90" />
-
+      <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
+            className="flex-1"
+          >
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
       <SafeAreaView edges={['top']} className="flex-1">
         {/* Stylist Header Section */}
         <View className="px-8 pt-6 pb-10">
@@ -71,14 +113,7 @@ export default function SignUpScreen() {
 
         {/* Main Content Panel (Cream Section) */}
         <View className="flex-1 bg-[#FDFAF1] rounded-t-[40px] overflow-hidden">
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1"
-          >
-            <ScrollView 
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ flexGrow: 1, padding: 32 }}
-            >
+            <View className="px-8 pt-8 pb-14">
               <Text 
                 className="text-slate-900 text-2xl mb-8"
                 style={{ fontFamily: 'Manrope-Bold' }}
@@ -89,12 +124,32 @@ export default function SignUpScreen() {
               {/* Form Fields */}
               <View>
                 {/* Modern Full Name Input */}
-                <View className="mb-6">
+                <View className="flex-row gap-4 mb-6">
+                  <View className="flex-1">
+                    <Text 
+                      className="text-slate-500 text-[11px] uppercase tracking-widest px-1 mb-2" 
+                      style={{ fontFamily: 'Manrope-Bold' }}
+                    >
+                      First Name
+                    </Text>
+                    <View className="bg-slate-100/80 rounded-2xl px-4 border border-slate-200/50">
+                      <TextInput 
+                        className="py-4 text-slate-900 text-base"
+                        placeholder="John Doe"
+                        placeholderTextColor="#94a3b8"
+                        style={{ fontFamily: 'Manrope-Medium' }}
+                        onChangeText={(text)=>handleChange('first_name', text)}
+                        value ={formData.first_name}
+                      />
+                    </View>
+                  </View>
+
+                  <View className="flex-1">
                   <Text 
                     className="text-slate-500 text-[11px] uppercase tracking-widest px-1 mb-2" 
                     style={{ fontFamily: 'Manrope-Bold' }}
                   >
-                    Full Name
+                    Last Name
                   </Text>
                   <View className="bg-slate-100/80 rounded-2xl px-4 border border-slate-200/50">
                     <TextInput 
@@ -102,9 +157,34 @@ export default function SignUpScreen() {
                       placeholder="John Doe"
                       placeholderTextColor="#94a3b8"
                       style={{ fontFamily: 'Manrope-Medium' }}
+                      onChangeText={(text)=>handleChange('last_name', text)}
+                      value ={formData.last_name}
                     />
                   </View>
                 </View>
+                </View>
+
+
+                <View className="mb-6">
+                  <Text 
+                    className="text-slate-500 text-[11px] uppercase tracking-widest px-1 mb-2" 
+                    style={{ fontFamily: 'Manrope-Bold' }}
+                  >
+                    Username
+                  </Text>
+                  <View className="bg-slate-100/80 rounded-2xl px-4 border border-slate-200/50">
+                    <TextInput 
+                      className="py-4 text-slate-900 text-base"
+                      placeholder="John Doe"
+                      placeholderTextColor="#94a3b8"
+                      style={{ fontFamily: 'Manrope-Medium' }}
+                      onChangeText={(text)=>handleChange('username', text)}
+                      value = {formData.username}
+                    />
+                  </View>
+                </View>
+
+                
 
                 {/* Modern Email Address Input */}
                 <View className="mb-6">
@@ -122,6 +202,8 @@ export default function SignUpScreen() {
                       keyboardType="email-address"
                       autoCapitalize="none"
                       style={{ fontFamily: 'Manrope-Medium' }}
+                      onChangeText = {(text)=>handleChange('email', text)}
+                      value={formData.email}
                     />
                   </View>
                 </View>
@@ -141,6 +223,8 @@ export default function SignUpScreen() {
                       placeholderTextColor="#94a3b8"
                       secureTextEntry={!showPassword}
                       style={{ fontFamily: 'Manrope-Medium' }}
+                      onChangeText={(text) => handleChange('password', text)}
+                      value={formData.password}
                     />
                     <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                       <MaterialIcons 
@@ -151,10 +235,44 @@ export default function SignUpScreen() {
                     </TouchableOpacity>
                   </View>
                 </View>
+                
+                {formData.password &&(
+                    <View className="mb-6">
+                  <Text 
+                    className="text-slate-500 text-[11px] uppercase tracking-widest px-1 mb-2" 
+                    style={{ fontFamily: 'Manrope-Bold' }}
+                  >
+                    Confirm Password
+                  </Text>
+                  <View className="bg-slate-100/80 rounded-2xl px-4 flex-row items-center border border-slate-200/50">
+                    <TextInput 
+                      className="flex-1 py-4 text-slate-900 text-base"
+                      placeholder="••••••••"
+                      placeholderTextColor="#94a3b8"
+                      secureTextEntry={!showPassword}
+                      style={{ fontFamily: 'Manrope-Medium' }}
+                      onChangeText={(text) => handleChange('cpassword', text)}
+                      value={formData.cpassword}
+                    />
+                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                      <MaterialIcons 
+                        name={showPassword ? "visibility" : "visibility-off"} 
+                        size={20} 
+                        color="#94a3b8" 
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                )}
+
 
                 {/* Terms Checkbox */}
                 <TouchableOpacity 
-                  onPress={() => setAgreed(!agreed)}
+                  onPress={() => {
+                    const nextValue = !agreed;
+                    setAgreed(nextValue);
+                    setFormData((prev) => ({ ...prev, agreed_to_terms: nextValue }));
+                  }}
                   className="flex-row items-start py-2 mb-8"
                   activeOpacity={0.7}
                 >
@@ -176,6 +294,7 @@ export default function SignUpScreen() {
                 <TouchableOpacity 
                   activeOpacity={0.8}
                   className="bg-[#010101] py-5 rounded-2xl items-center shadow-lg mb-8"
+                  onPress={handleSubmit}
                 >
                   <Text 
                     className="text-white text-lg" 
@@ -199,10 +318,11 @@ export default function SignUpScreen() {
                   </Text>
                 </Text>
               </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
+            </View>
         </View>
       </SafeAreaView>
+      </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
